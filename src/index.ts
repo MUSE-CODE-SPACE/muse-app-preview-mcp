@@ -431,29 +431,36 @@ async function handleClearAll(args: { confirm: boolean }): Promise<string> {
 }
 
 async function handleOpenApp(): Promise<string> {
-  try {
-    // Export previews for the app to load
-    const store = loadStore();
-    const exportPath = path.join(
-      process.env.HOME || "~",
-      ".muse-app-preview",
-      "pending-previews.json"
-    );
-    fs.writeFileSync(exportPath, JSON.stringify(store.previews, null, 2));
+  // Export previews for the app to load
+  const store = loadStore();
+  const dataDir = path.join(process.env.HOME || "~", ".muse-app-preview");
+  const exportPath = path.join(dataDir, "pending-previews.json");
 
-    // Try to open the app
+  ensureStorageDir();
+  fs.writeFileSync(exportPath, JSON.stringify(store.previews, null, 2));
+
+  // Try to open the app
+  try {
     await execAsync(`open -b ${APP_BUNDLE_ID}`);
 
     return JSON.stringify({
       success: true,
       message: "MUSE Preview Maker opened",
       previewsLoaded: store.previews.length,
+      dataFolder: dataDir,
     });
   } catch (error) {
+    // App not installed - open folder instead
+    await execAsync(`open "${dataDir}"`);
+
     return JSON.stringify({
-      success: false,
-      error: `Failed to open app: ${error}`,
-      hint: "Make sure MUSE Preview Maker is installed",
+      success: true,
+      appInstalled: false,
+      message: "MUSE Preview Maker app is not installed. Preview data has been saved.",
+      hint: "Install MUSE Preview Maker app to generate beautiful App Store preview images with this data.",
+      dataFolder: dataDir,
+      filesCreated: ["pending-previews.json"],
+      previewCount: store.previews.length,
     });
   }
 }
@@ -463,6 +470,7 @@ async function handleGeneratePreviews(args: {
   exportAllSizes?: boolean;
 }): Promise<string> {
   const store = loadStore();
+  const dataDir = path.join(process.env.HOME || "~", ".muse-app-preview");
 
   if (store.previews.length === 0) {
     return JSON.stringify({
@@ -473,17 +481,14 @@ async function handleGeneratePreviews(args: {
 
   const outputDir = args.outputDirectory || store.settings.outputDirectory;
 
-  // Ensure output directory exists
+  // Ensure directories exist
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
+  ensureStorageDir();
 
   // Export previews for the app
-  const exportPath = path.join(
-    process.env.HOME || "~",
-    ".muse-app-preview",
-    "pending-previews.json"
-  );
+  const exportPath = path.join(dataDir, "pending-previews.json");
 
   const exportData = {
     previews: store.previews,
@@ -504,15 +509,29 @@ async function handleGeneratePreviews(args: {
       success: true,
       message: `Generation started for ${store.previews.length} preview(s)`,
       outputDirectory: outputDir,
+      dataFolder: dataDir,
       previews: store.previews.map((p) => ({
         title: p.title,
         subtitle: p.subtitle,
       })),
     });
   } catch (error) {
+    // App not installed - open data folder instead
+    await execAsync(`open "${dataDir}"`);
+
     return JSON.stringify({
-      success: false,
-      error: `Failed to start generation: ${error}`,
+      success: true,
+      appInstalled: false,
+      message: "MUSE Preview Maker app is not installed. Preview data has been saved and folder opened.",
+      hint: "Install MUSE Preview Maker app to automatically generate beautiful App Store preview images.",
+      dataFolder: dataDir,
+      outputDirectory: outputDir,
+      filesCreated: ["pending-previews.json"],
+      previewCount: store.previews.length,
+      previews: store.previews.map((p) => ({
+        title: p.title,
+        subtitle: p.subtitle,
+      })),
     });
   }
 }
