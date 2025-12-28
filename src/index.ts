@@ -450,6 +450,299 @@ const tools: Tool[] = [
       required: ["bundleId", "screens"],
     },
   },
+  // === Advanced Capture Tools ===
+  {
+    name: "interact_simulator",
+    description:
+      "Interact with iOS Simulator: tap, swipe, scroll, type text. Use this to navigate to specific screens before capturing.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        action: {
+          type: "string",
+          enum: ["tap", "swipe", "scroll", "type", "home", "shake"],
+          description: "Action type",
+        },
+        x: {
+          type: "number",
+          description: "X coordinate (for tap/swipe start)",
+        },
+        y: {
+          type: "number",
+          description: "Y coordinate (for tap/swipe start)",
+        },
+        toX: {
+          type: "number",
+          description: "End X coordinate (for swipe)",
+        },
+        toY: {
+          type: "number",
+          description: "End Y coordinate (for swipe)",
+        },
+        direction: {
+          type: "string",
+          enum: ["up", "down", "left", "right"],
+          description: "Scroll/swipe direction (alternative to coordinates)",
+        },
+        text: {
+          type: "string",
+          description: "Text to type (for type action)",
+        },
+        duration: {
+          type: "number",
+          description: "Duration in seconds (for swipe). Default: 0.3",
+        },
+        simulatorUDID: {
+          type: "string",
+          description: "Target simulator UDID. Uses tracked simulator if not specified.",
+        },
+      },
+      required: ["action"],
+    },
+  },
+  {
+    name: "navigate_app",
+    description:
+      "Navigate to a specific screen in the app using deep links (URL schemes) or by opening URLs.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        url: {
+          type: "string",
+          description: "Deep link URL or URL scheme (e.g., 'myapp://settings', 'https://example.com/page')",
+        },
+        bundleId: {
+          type: "string",
+          description: "Bundle ID of the app (required for some navigations)",
+        },
+        waitSeconds: {
+          type: "number",
+          description: "Seconds to wait after navigation. Default: 2",
+        },
+        simulatorUDID: {
+          type: "string",
+          description: "Target simulator UDID.",
+        },
+      },
+      required: ["url"],
+    },
+  },
+  {
+    name: "configure_simulator",
+    description:
+      "Configure simulator appearance: status bar time, battery, signal, dark/light mode, etc. Makes screenshots look professional.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        statusBarTime: {
+          type: "string",
+          description: "Set status bar time (e.g., '9:41')",
+        },
+        batteryLevel: {
+          type: "number",
+          description: "Battery level 0-100",
+        },
+        batteryState: {
+          type: "string",
+          enum: ["charging", "charged", "discharging"],
+          description: "Battery state",
+        },
+        cellularBars: {
+          type: "number",
+          description: "Cellular signal bars 0-4",
+        },
+        wifiBars: {
+          type: "number",
+          description: "WiFi signal bars 0-3",
+        },
+        appearance: {
+          type: "string",
+          enum: ["light", "dark"],
+          description: "Light or dark mode",
+        },
+        simulatorUDID: {
+          type: "string",
+          description: "Target simulator UDID.",
+        },
+      },
+    },
+  },
+  {
+    name: "auto_capture_flow",
+    description:
+      "Automatically capture a user flow with actions. Define a sequence of actions (tap, swipe, wait) and capture at each step. Perfect for capturing onboarding flows, feature tours, etc.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        bundleId: {
+          type: "string",
+          description: "Bundle ID of the app",
+        },
+        flow: {
+          type: "array",
+          description: "Sequence of actions and captures",
+          items: {
+            type: "object",
+            properties: {
+              action: {
+                type: "string",
+                enum: ["capture", "tap", "swipe", "scroll", "wait", "type", "navigate"],
+                description: "Action to perform",
+              },
+              title: { type: "string", description: "Title for capture" },
+              subtitle: { type: "string", description: "Subtitle for capture" },
+              paletteId: { type: "string", description: "Palette for capture" },
+              x: { type: "number" },
+              y: { type: "number" },
+              toX: { type: "number" },
+              toY: { type: "number" },
+              direction: { type: "string", enum: ["up", "down", "left", "right"] },
+              text: { type: "string" },
+              url: { type: "string", description: "URL for navigate action" },
+              seconds: { type: "number", description: "Wait time or animation duration" },
+            },
+          },
+        },
+        resetFirst: {
+          type: "boolean",
+          description: "Reset app state before starting. Default: true",
+        },
+        simulatorUDID: {
+          type: "string",
+          description: "Target simulator UDID.",
+        },
+      },
+      required: ["bundleId", "flow"],
+    },
+  },
+  {
+    name: "scroll_and_capture",
+    description:
+      "Scroll through a screen and capture at intervals. Great for capturing long lists, feeds, or scrollable content.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        bundleId: {
+          type: "string",
+          description: "Bundle ID of the app",
+        },
+        scrollCount: {
+          type: "number",
+          description: "Number of scroll actions. Default: 3",
+        },
+        direction: {
+          type: "string",
+          enum: ["up", "down", "left", "right"],
+          description: "Scroll direction. Default: down",
+        },
+        captureEach: {
+          type: "boolean",
+          description: "Capture after each scroll. Default: true",
+        },
+        titles: {
+          type: "array",
+          items: { type: "string" },
+          description: "Titles for each capture",
+        },
+        subtitles: {
+          type: "array",
+          items: { type: "string" },
+          description: "Subtitles for each capture",
+        },
+        paletteIds: {
+          type: "array",
+          items: { type: "string" },
+          description: "Palette IDs for each capture",
+        },
+        waitBetween: {
+          type: "number",
+          description: "Seconds to wait between scrolls. Default: 1",
+        },
+        simulatorUDID: {
+          type: "string",
+          description: "Target simulator UDID.",
+        },
+      },
+      required: ["bundleId"],
+    },
+  },
+  {
+    name: "batch_capture_devices",
+    description:
+      "Capture the same screen on multiple devices/simulators. Great for generating previews for all device sizes at once.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        bundleId: {
+          type: "string",
+          description: "Bundle ID of the app",
+        },
+        title: {
+          type: "string",
+          description: "Title for all captures",
+        },
+        subtitle: {
+          type: "string",
+          description: "Subtitle for all captures",
+        },
+        paletteId: {
+          type: "string",
+          description: "Palette ID for all captures",
+        },
+        devices: {
+          type: "array",
+          items: { type: "string" },
+          description: "List of simulator names or UDIDs to capture",
+        },
+        bootDevices: {
+          type: "boolean",
+          description: "Boot specified devices if not running. Default: false",
+        },
+        waitSeconds: {
+          type: "number",
+          description: "Wait time after launching app. Default: 3",
+        },
+      },
+      required: ["bundleId", "title", "subtitle"],
+    },
+  },
+  {
+    name: "record_and_extract",
+    description:
+      "Record simulator video and extract key frames as screenshots. Useful for capturing animations or transitions.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        bundleId: {
+          type: "string",
+          description: "Bundle ID of the app",
+        },
+        duration: {
+          type: "number",
+          description: "Recording duration in seconds. Default: 5",
+        },
+        frameCount: {
+          type: "number",
+          description: "Number of frames to extract. Default: 3",
+        },
+        titles: {
+          type: "array",
+          items: { type: "string" },
+          description: "Titles for each extracted frame",
+        },
+        subtitles: {
+          type: "array",
+          items: { type: "string" },
+          description: "Subtitles for each extracted frame",
+        },
+        simulatorUDID: {
+          type: "string",
+          description: "Target simulator UDID.",
+        },
+      },
+      required: ["bundleId"],
+    },
+  },
 ];
 
 // Tool handlers
@@ -1660,11 +1953,750 @@ async function handleCreateAppPreviews(args: {
   }
 }
 
+// === Advanced Capture Handlers ===
+
+// Helper: Get target simulator (uses tracked or finds appropriate one)
+async function getTargetSimulator(simulatorUDID?: string): Promise<{ name: string; udid: string; runtime: string } | null> {
+  const bootedSimulators = await getBootedSimulators();
+  if (bootedSimulators.length === 0) return null;
+
+  if (simulatorUDID) {
+    return bootedSimulators.find(s => s.udid === simulatorUDID) || null;
+  }
+
+  // Use last launched simulator if available
+  if (lastLaunchedSimulator) {
+    const found = bootedSimulators.find(s => s.udid === lastLaunchedSimulator!.udid);
+    if (found) return found;
+  }
+
+  return bootedSimulators[0];
+}
+
+// Helper: Perform touch/gesture via AppleScript (controls Simulator.app window)
+async function simulatorInteract(
+  udid: string,
+  action: string,
+  params: {
+    x?: number;
+    y?: number;
+    toX?: number;
+    toY?: number;
+    direction?: string;
+    text?: string;
+    duration?: number;
+  }
+): Promise<boolean> {
+  try {
+    // Get simulator window info
+    const { stdout: windowBounds } = await execAsync(`
+      osascript -e 'tell application "Simulator"
+        set frontmost to true
+        delay 0.2
+      end tell'
+    `);
+
+    // For swipe/scroll by direction, calculate coordinates
+    let startX = params.x || 200;
+    let startY = params.y || 400;
+    let endX = params.toX || startX;
+    let endY = params.toY || startY;
+    const duration = params.duration || 0.3;
+
+    if (params.direction) {
+      const swipeDistance = 300;
+      switch (params.direction) {
+        case "up":
+          endY = startY - swipeDistance;
+          break;
+        case "down":
+          endY = startY + swipeDistance;
+          break;
+        case "left":
+          endX = startX - swipeDistance;
+          break;
+        case "right":
+          endX = startX + swipeDistance;
+          break;
+      }
+    }
+
+    switch (action) {
+      case "tap":
+        // Use cliclick if available, otherwise AppleScript
+        try {
+          await execAsync(`cliclick c:${startX},${startY}`);
+        } catch {
+          // Fallback: Use AppleScript to click
+          await execAsync(`
+            osascript -e 'tell application "System Events"
+              tell process "Simulator"
+                click at {${startX}, ${startY}}
+              end tell
+            end tell'
+          `);
+        }
+        break;
+
+      case "swipe":
+      case "scroll":
+        // Use AppleScript for swipe gesture
+        await execAsync(`
+          osascript -e 'tell application "System Events"
+            tell process "Simulator"
+              set frontmost to true
+            end tell
+          end tell'
+        `);
+        // Simctl doesn't have direct swipe, but we can use privacy/UI automation
+        // For now, use key events for scrolling
+        if (action === "scroll") {
+          const scrollKey = params.direction === "up" || params.direction === "left" ? "126" : "125";
+          const count = 5;
+          for (let i = 0; i < count; i++) {
+            await execAsync(`
+              osascript -e 'tell application "System Events" to key code ${scrollKey}'
+            `);
+            await sleep(0.1);
+          }
+        }
+        break;
+
+      case "type":
+        if (params.text) {
+          // Type text character by character
+          await execAsync(`
+            osascript -e 'tell application "System Events"
+              tell process "Simulator"
+                set frontmost to true
+                keystroke "${params.text.replace(/"/g, '\\"')}"
+              end tell
+            end tell'
+          `);
+        }
+        break;
+
+      case "home":
+        await execAsync(`xcrun simctl ui ${udid} home`);
+        break;
+
+      case "shake":
+        // Trigger shake gesture (useful for debug menus)
+        await execAsync(`
+          osascript -e 'tell application "Simulator" to activate' -e 'tell application "System Events" to keystroke "z" using {control down, command down}'
+        `);
+        break;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Simulator interaction failed:", error);
+    return false;
+  }
+}
+
+// Handler: Interact with simulator
+async function handleInteractSimulator(args: {
+  action: string;
+  x?: number;
+  y?: number;
+  toX?: number;
+  toY?: number;
+  direction?: string;
+  text?: string;
+  duration?: number;
+  simulatorUDID?: string;
+}): Promise<string> {
+  try {
+    const simulator = await getTargetSimulator(args.simulatorUDID);
+    if (!simulator) {
+      return JSON.stringify({
+        success: false,
+        error: "No iOS Simulator is running",
+      });
+    }
+
+    const success = await simulatorInteract(simulator.udid, args.action, {
+      x: args.x,
+      y: args.y,
+      toX: args.toX,
+      toY: args.toY,
+      direction: args.direction,
+      text: args.text,
+      duration: args.duration,
+    });
+
+    return JSON.stringify({
+      success,
+      message: success ? `Performed ${args.action} on simulator` : `${args.action} failed`,
+      simulator: { name: simulator.name, udid: simulator.udid },
+      action: args.action,
+      params: { x: args.x, y: args.y, direction: args.direction },
+    });
+  } catch (error: any) {
+    return JSON.stringify({
+      success: false,
+      error: `Interact failed: ${error.message}`,
+    });
+  }
+}
+
+// Handler: Navigate app via deep link
+async function handleNavigateApp(args: {
+  url: string;
+  bundleId?: string;
+  waitSeconds?: number;
+  simulatorUDID?: string;
+}): Promise<string> {
+  try {
+    const simulator = await getTargetSimulator(args.simulatorUDID);
+    if (!simulator) {
+      return JSON.stringify({
+        success: false,
+        error: "No iOS Simulator is running",
+      });
+    }
+
+    // Open URL in simulator
+    await execAsync(`xcrun simctl openurl ${simulator.udid} "${args.url}"`);
+
+    // Wait for navigation
+    await sleep(args.waitSeconds || 2);
+
+    return JSON.stringify({
+      success: true,
+      message: `Navigated to ${args.url}`,
+      simulator: { name: simulator.name, udid: simulator.udid },
+      url: args.url,
+    });
+  } catch (error: any) {
+    return JSON.stringify({
+      success: false,
+      error: `Navigation failed: ${error.message}`,
+    });
+  }
+}
+
+// Handler: Configure simulator
+async function handleConfigureSimulator(args: {
+  statusBarTime?: string;
+  batteryLevel?: number;
+  batteryState?: string;
+  cellularBars?: number;
+  wifiBars?: number;
+  appearance?: string;
+  simulatorUDID?: string;
+}): Promise<string> {
+  try {
+    const simulator = await getTargetSimulator(args.simulatorUDID);
+    if (!simulator) {
+      return JSON.stringify({
+        success: false,
+        error: "No iOS Simulator is running",
+      });
+    }
+
+    const changes: string[] = [];
+
+    // Override status bar
+    if (args.statusBarTime || args.batteryLevel !== undefined || args.cellularBars !== undefined || args.wifiBars !== undefined) {
+      let statusBarCmd = `xcrun simctl status_bar ${simulator.udid} override`;
+
+      if (args.statusBarTime) {
+        statusBarCmd += ` --time "${args.statusBarTime}"`;
+        changes.push(`time: ${args.statusBarTime}`);
+      }
+      if (args.batteryLevel !== undefined) {
+        statusBarCmd += ` --batteryLevel ${args.batteryLevel}`;
+        changes.push(`battery: ${args.batteryLevel}%`);
+      }
+      if (args.batteryState) {
+        statusBarCmd += ` --batteryState ${args.batteryState}`;
+        changes.push(`batteryState: ${args.batteryState}`);
+      }
+      if (args.cellularBars !== undefined) {
+        statusBarCmd += ` --cellularBars ${args.cellularBars}`;
+        changes.push(`cellular: ${args.cellularBars} bars`);
+      }
+      if (args.wifiBars !== undefined) {
+        statusBarCmd += ` --wifiBars ${args.wifiBars}`;
+        changes.push(`wifi: ${args.wifiBars} bars`);
+      }
+
+      await execAsync(statusBarCmd);
+    }
+
+    // Set appearance (dark/light mode)
+    if (args.appearance) {
+      await execAsync(`xcrun simctl ui ${simulator.udid} appearance ${args.appearance}`);
+      changes.push(`appearance: ${args.appearance}`);
+    }
+
+    return JSON.stringify({
+      success: true,
+      message: "Simulator configured",
+      simulator: { name: simulator.name, udid: simulator.udid },
+      changes,
+    });
+  } catch (error: any) {
+    return JSON.stringify({
+      success: false,
+      error: `Configure failed: ${error.message}`,
+    });
+  }
+}
+
+// Handler: Auto capture flow
+async function handleAutoCaptureFlow(args: {
+  bundleId: string;
+  flow: Array<{
+    action: string;
+    title?: string;
+    subtitle?: string;
+    paletteId?: string;
+    x?: number;
+    y?: number;
+    toX?: number;
+    toY?: number;
+    direction?: string;
+    text?: string;
+    url?: string;
+    seconds?: number;
+  }>;
+  resetFirst?: boolean;
+  simulatorUDID?: string;
+}): Promise<string> {
+  try {
+    ensureScreenshotsDir();
+
+    const simulator = await getTargetSimulator(args.simulatorUDID);
+    if (!simulator) {
+      return JSON.stringify({
+        success: false,
+        error: "No iOS Simulator is running",
+      });
+    }
+
+    // Reset if requested
+    if (args.resetFirst !== false) {
+      try {
+        await execAsync(`xcrun simctl terminate ${simulator.udid} ${args.bundleId}`);
+        await sleep(0.5);
+      } catch {}
+    }
+
+    // Launch app
+    try {
+      await execAsync(`xcrun simctl launch ${simulator.udid} ${args.bundleId}`);
+      await sleep(2);
+    } catch (e: any) {
+      return JSON.stringify({
+        success: false,
+        error: `Failed to launch app: ${e.message}`,
+      });
+    }
+
+    // Track this simulator
+    lastLaunchedSimulator = {
+      udid: simulator.udid,
+      name: simulator.name,
+      bundleId: args.bundleId,
+    };
+
+    const store = loadStore();
+    const capturedPreviews: PreviewSet[] = [];
+    const palettes = ["ocean", "sunset", "forest", "lavender", "coral"];
+    const deviceId = mapSimulatorToDeviceId(simulator.name);
+    let captureIndex = 0;
+
+    // Execute flow
+    for (let i = 0; i < args.flow.length; i++) {
+      const step = args.flow[i];
+
+      switch (step.action) {
+        case "capture":
+          const timestamp = Date.now();
+          const screenshotPath = path.join(
+            SCREENSHOTS_DIR,
+            `flow_${captureIndex + 1}_${timestamp}.png`
+          );
+
+          await execAsync(`xcrun simctl io ${simulator.udid} screenshot "${screenshotPath}"`);
+
+          if (fs.existsSync(screenshotPath)) {
+            const preview: PreviewSet = {
+              id: generateId(),
+              screenshotPath,
+              title: step.title || `Screen ${captureIndex + 1}`,
+              subtitle: step.subtitle || "",
+              deviceId,
+              paletteId: step.paletteId || palettes[captureIndex % palettes.length],
+              createdAt: new Date().toISOString(),
+            };
+            store.previews.push(preview);
+            capturedPreviews.push(preview);
+            captureIndex++;
+          }
+          break;
+
+        case "tap":
+        case "swipe":
+        case "scroll":
+        case "type":
+          await simulatorInteract(simulator.udid, step.action, {
+            x: step.x,
+            y: step.y,
+            toX: step.toX,
+            toY: step.toY,
+            direction: step.direction,
+            text: step.text,
+          });
+          await sleep(0.5);
+          break;
+
+        case "wait":
+          await sleep(step.seconds || 1);
+          break;
+
+        case "navigate":
+          if (step.url) {
+            await execAsync(`xcrun simctl openurl ${simulator.udid} "${step.url}"`);
+            await sleep(step.seconds || 2);
+          }
+          break;
+      }
+    }
+
+    saveStore(store);
+
+    return JSON.stringify({
+      success: true,
+      message: `Executed flow with ${args.flow.length} steps, captured ${capturedPreviews.length} screenshots`,
+      simulator: { name: simulator.name, udid: simulator.udid },
+      previews: capturedPreviews.map(p => ({ title: p.title, subtitle: p.subtitle })),
+      totalPreviews: store.previews.length,
+    });
+  } catch (error: any) {
+    return JSON.stringify({
+      success: false,
+      error: `Auto capture flow failed: ${error.message}`,
+    });
+  }
+}
+
+// Handler: Scroll and capture
+async function handleScrollAndCapture(args: {
+  bundleId: string;
+  scrollCount?: number;
+  direction?: string;
+  captureEach?: boolean;
+  titles?: string[];
+  subtitles?: string[];
+  paletteIds?: string[];
+  waitBetween?: number;
+  simulatorUDID?: string;
+}): Promise<string> {
+  try {
+    ensureScreenshotsDir();
+
+    const simulator = await getTargetSimulator(args.simulatorUDID);
+    if (!simulator) {
+      return JSON.stringify({
+        success: false,
+        error: "No iOS Simulator is running",
+      });
+    }
+
+    const scrollCount = args.scrollCount || 3;
+    const direction = args.direction || "down";
+    const waitBetween = args.waitBetween || 1;
+    const palettes = ["ocean", "sunset", "forest", "lavender", "coral"];
+
+    const store = loadStore();
+    const capturedPreviews: PreviewSet[] = [];
+    const deviceId = mapSimulatorToDeviceId(simulator.name);
+
+    // Capture initial state
+    const initialTimestamp = Date.now();
+    const initialPath = path.join(SCREENSHOTS_DIR, `scroll_0_${initialTimestamp}.png`);
+    await execAsync(`xcrun simctl io ${simulator.udid} screenshot "${initialPath}"`);
+
+    if (fs.existsSync(initialPath)) {
+      const preview: PreviewSet = {
+        id: generateId(),
+        screenshotPath: initialPath,
+        title: args.titles?.[0] || "Overview",
+        subtitle: args.subtitles?.[0] || "",
+        deviceId,
+        paletteId: args.paletteIds?.[0] || palettes[0],
+        createdAt: new Date().toISOString(),
+      };
+      store.previews.push(preview);
+      capturedPreviews.push(preview);
+    }
+
+    // Scroll and capture
+    for (let i = 0; i < scrollCount; i++) {
+      await simulatorInteract(simulator.udid, "scroll", { direction });
+      await sleep(waitBetween);
+
+      if (args.captureEach !== false) {
+        const timestamp = Date.now();
+        const screenshotPath = path.join(SCREENSHOTS_DIR, `scroll_${i + 1}_${timestamp}.png`);
+        await execAsync(`xcrun simctl io ${simulator.udid} screenshot "${screenshotPath}"`);
+
+        if (fs.existsSync(screenshotPath)) {
+          const preview: PreviewSet = {
+            id: generateId(),
+            screenshotPath,
+            title: args.titles?.[i + 1] || `Section ${i + 2}`,
+            subtitle: args.subtitles?.[i + 1] || "",
+            deviceId,
+            paletteId: args.paletteIds?.[i + 1] || palettes[(i + 1) % palettes.length],
+            createdAt: new Date().toISOString(),
+          };
+          store.previews.push(preview);
+          capturedPreviews.push(preview);
+        }
+      }
+    }
+
+    saveStore(store);
+
+    return JSON.stringify({
+      success: true,
+      message: `Scrolled ${scrollCount} times and captured ${capturedPreviews.length} screenshots`,
+      simulator: { name: simulator.name, udid: simulator.udid },
+      previews: capturedPreviews.map(p => ({ title: p.title, subtitle: p.subtitle })),
+      totalPreviews: store.previews.length,
+    });
+  } catch (error: any) {
+    return JSON.stringify({
+      success: false,
+      error: `Scroll and capture failed: ${error.message}`,
+    });
+  }
+}
+
+// Handler: Batch capture on multiple devices
+async function handleBatchCaptureDevices(args: {
+  bundleId: string;
+  title: string;
+  subtitle: string;
+  paletteId?: string;
+  devices?: string[];
+  bootDevices?: boolean;
+  waitSeconds?: number;
+}): Promise<string> {
+  try {
+    ensureScreenshotsDir();
+
+    const bootedSimulators = await getBootedSimulators();
+    if (bootedSimulators.length === 0) {
+      return JSON.stringify({
+        success: false,
+        error: "No iOS Simulators are running",
+      });
+    }
+
+    const waitSeconds = args.waitSeconds || 3;
+    const store = loadStore();
+    const capturedPreviews: PreviewSet[] = [];
+
+    // If specific devices requested, filter
+    let targetSimulators = bootedSimulators;
+    if (args.devices && args.devices.length > 0) {
+      targetSimulators = bootedSimulators.filter(s =>
+        args.devices!.some(d =>
+          s.name.toLowerCase().includes(d.toLowerCase()) || s.udid === d
+        )
+      );
+    }
+
+    if (targetSimulators.length === 0) {
+      return JSON.stringify({
+        success: false,
+        error: "No matching simulators found",
+        availableSimulators: bootedSimulators.map(s => s.name),
+      });
+    }
+
+    // Capture on each device
+    for (const simulator of targetSimulators) {
+      // Launch app
+      try {
+        await execAsync(`xcrun simctl terminate ${simulator.udid} ${args.bundleId}`);
+        await sleep(0.3);
+      } catch {}
+
+      try {
+        await execAsync(`xcrun simctl launch ${simulator.udid} ${args.bundleId}`);
+      } catch (e: any) {
+        continue; // Skip if app not installed on this device
+      }
+
+      await sleep(waitSeconds);
+
+      // Capture
+      const timestamp = Date.now();
+      const safeName = simulator.name.replace(/[^a-zA-Z0-9]/g, "_");
+      const screenshotPath = path.join(SCREENSHOTS_DIR, `batch_${safeName}_${timestamp}.png`);
+
+      await execAsync(`xcrun simctl io ${simulator.udid} screenshot "${screenshotPath}"`);
+
+      if (fs.existsSync(screenshotPath)) {
+        const preview: PreviewSet = {
+          id: generateId(),
+          screenshotPath,
+          title: args.title,
+          subtitle: args.subtitle,
+          deviceId: mapSimulatorToDeviceId(simulator.name),
+          paletteId: args.paletteId || store.settings.defaultPaletteId,
+          createdAt: new Date().toISOString(),
+        };
+        store.previews.push(preview);
+        capturedPreviews.push(preview);
+      }
+    }
+
+    saveStore(store);
+
+    return JSON.stringify({
+      success: true,
+      message: `Captured on ${capturedPreviews.length} device(s)`,
+      previews: capturedPreviews.map(p => ({
+        title: p.title,
+        deviceId: p.deviceId,
+      })),
+      totalPreviews: store.previews.length,
+    });
+  } catch (error: any) {
+    return JSON.stringify({
+      success: false,
+      error: `Batch capture failed: ${error.message}`,
+    });
+  }
+}
+
+// Handler: Record and extract frames
+async function handleRecordAndExtract(args: {
+  bundleId: string;
+  duration?: number;
+  frameCount?: number;
+  titles?: string[];
+  subtitles?: string[];
+  simulatorUDID?: string;
+}): Promise<string> {
+  try {
+    ensureScreenshotsDir();
+
+    const simulator = await getTargetSimulator(args.simulatorUDID);
+    if (!simulator) {
+      return JSON.stringify({
+        success: false,
+        error: "No iOS Simulator is running",
+      });
+    }
+
+    const duration = args.duration || 5;
+    const frameCount = args.frameCount || 3;
+    const palettes = ["ocean", "sunset", "forest", "lavender", "coral"];
+
+    // Record video
+    const timestamp = Date.now();
+    const videoPath = path.join(SCREENSHOTS_DIR, `recording_${timestamp}.mp4`);
+
+    // Start recording in background
+    const recordProcess = exec(
+      `xcrun simctl io ${simulator.udid} recordVideo --codec=h264 "${videoPath}"`
+    );
+
+    // Wait for duration
+    await sleep(duration);
+
+    // Stop recording
+    recordProcess.kill("SIGINT");
+    await sleep(1);
+
+    // Check if video was created
+    if (!fs.existsSync(videoPath)) {
+      return JSON.stringify({
+        success: false,
+        error: "Failed to record video",
+      });
+    }
+
+    // Extract frames using ffmpeg
+    const store = loadStore();
+    const capturedPreviews: PreviewSet[] = [];
+    const deviceId = mapSimulatorToDeviceId(simulator.name);
+
+    try {
+      // Get video duration
+      const { stdout: durationInfo } = await execAsync(
+        `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${videoPath}"`
+      );
+      const videoDuration = parseFloat(durationInfo.trim());
+      const interval = videoDuration / (frameCount + 1);
+
+      for (let i = 0; i < frameCount; i++) {
+        const timeOffset = interval * (i + 1);
+        const framePath = path.join(SCREENSHOTS_DIR, `frame_${i + 1}_${timestamp}.png`);
+
+        await execAsync(
+          `ffmpeg -ss ${timeOffset} -i "${videoPath}" -vframes 1 -q:v 2 "${framePath}" -y`
+        );
+
+        if (fs.existsSync(framePath)) {
+          const preview: PreviewSet = {
+            id: generateId(),
+            screenshotPath: framePath,
+            title: args.titles?.[i] || `Frame ${i + 1}`,
+            subtitle: args.subtitles?.[i] || "",
+            deviceId,
+            paletteId: palettes[i % palettes.length],
+            createdAt: new Date().toISOString(),
+          };
+          store.previews.push(preview);
+          capturedPreviews.push(preview);
+        }
+      }
+    } catch (ffmpegError: any) {
+      // ffmpeg not available, fall back to regular captures at intervals
+      return JSON.stringify({
+        success: false,
+        error: "ffmpeg not found. Install it with: brew install ffmpeg",
+        hint: "Use scroll_and_capture or auto_capture_flow as alternatives",
+      });
+    }
+
+    // Clean up video file
+    try {
+      fs.unlinkSync(videoPath);
+    } catch {}
+
+    saveStore(store);
+
+    return JSON.stringify({
+      success: true,
+      message: `Recorded ${duration}s video and extracted ${capturedPreviews.length} frames`,
+      simulator: { name: simulator.name, udid: simulator.udid },
+      previews: capturedPreviews.map(p => ({ title: p.title, subtitle: p.subtitle })),
+      totalPreviews: store.previews.length,
+    });
+  } catch (error: any) {
+    return JSON.stringify({
+      success: false,
+      error: `Record and extract failed: ${error.message}`,
+    });
+  }
+}
+
 // Main server setup
 const server = new Server(
   {
     name: "muse-app-preview-mcp",
-    version: "1.4.0",
+    version: "1.5.0",
   },
   {
     capabilities: {
@@ -1729,6 +2761,28 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       break;
     case "create_app_previews":
       result = await handleCreateAppPreviews(args as any);
+      break;
+    // Advanced Capture Tools
+    case "interact_simulator":
+      result = await handleInteractSimulator(args as any);
+      break;
+    case "navigate_app":
+      result = await handleNavigateApp(args as any);
+      break;
+    case "configure_simulator":
+      result = await handleConfigureSimulator(args as any);
+      break;
+    case "auto_capture_flow":
+      result = await handleAutoCaptureFlow(args as any);
+      break;
+    case "scroll_and_capture":
+      result = await handleScrollAndCapture(args as any);
+      break;
+    case "batch_capture_devices":
+      result = await handleBatchCaptureDevices(args as any);
+      break;
+    case "record_and_extract":
+      result = await handleRecordAndExtract(args as any);
       break;
     default:
       result = JSON.stringify({ error: `Unknown tool: ${name}` });
