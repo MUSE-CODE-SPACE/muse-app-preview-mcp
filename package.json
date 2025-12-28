@@ -1,6 +1,6 @@
 {
   "name": "muse-app-preview-mcp",
-  "version": "1.1.1",
+  "version": "1.4.0",
   "description": "MCP server for managing app store preview screenshots with MUSE Preview Maker",
   "main": "dist/index.js",
   "bin": {
