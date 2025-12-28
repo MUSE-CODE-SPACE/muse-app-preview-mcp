@@ -34,11 +34,17 @@ interface PreviewStore {
   };
 }
 
-// Storage path
+// Storage paths
 const STORE_PATH = path.join(
   process.env.HOME || "~",
   ".muse-app-preview",
   "previews.json"
+);
+
+const SCREENSHOTS_DIR = path.join(
+  process.env.HOME || "~",
+  ".muse-app-preview",
+  "screenshots"
 );
 
 const APP_BUNDLE_ID = "musepreviewmaker.loro";
@@ -48,6 +54,13 @@ function ensureStorageDir(): void {
   const dir = path.dirname(STORE_PATH);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
+  }
+}
+
+// Ensure screenshots directory exists
+function ensureScreenshotsDir(): void {
+  if (!fs.existsSync(SCREENSHOTS_DIR)) {
+    fs.mkdirSync(SCREENSHOTS_DIR, { recursive: true });
   }
 }
 
@@ -236,6 +249,45 @@ const tools: Tool[] = [
           description: "Default output directory for generated previews",
         },
       },
+    },
+  },
+  {
+    name: "capture_simulator",
+    description:
+      "Capture a screenshot from the running iOS Simulator and add it as a preview set. Claude can use this to automatically capture app screens and generate marketing text.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: {
+          type: "string",
+          description: "Main title text for the preview (e.g., 'Easy Login')",
+        },
+        subtitle: {
+          type: "string",
+          description: "Subtitle text for the preview (e.g., 'Get started in seconds')",
+        },
+        deviceType: {
+          type: "string",
+          description: "Device type (iphone_6_7, iphone_6_5, ipad_12_9, etc.). Optional.",
+        },
+        paletteId: {
+          type: "string",
+          description: "Color palette ID (ocean, sunset, forest, etc.). Optional.",
+        },
+        simulatorUDID: {
+          type: "string",
+          description: "Specific simulator UDID to capture from. Optional, uses booted simulator by default.",
+        },
+      },
+      required: ["title", "subtitle"],
+    },
+  },
+  {
+    name: "list_simulators",
+    description: "List all booted iOS Simulators that can be captured.",
+    inputSchema: {
+      type: "object",
+      properties: {},
     },
   },
 ];
@@ -499,11 +551,146 @@ async function handleUpdateSettings(args: {
   });
 }
 
+async function handleCaptureSimulator(args: {
+  title: string;
+  subtitle: string;
+  deviceType?: string;
+  paletteId?: string;
+  simulatorUDID?: string;
+}): Promise<string> {
+  try {
+    ensureScreenshotsDir();
+
+    // Generate unique filename
+    const timestamp = Date.now();
+    const screenshotPath = path.join(
+      SCREENSHOTS_DIR,
+      `screenshot_${timestamp}.png`
+    );
+
+    // Determine which simulator to capture
+    const targetDevice = args.simulatorUDID || "booted";
+
+    // Capture screenshot from simulator
+    try {
+      await execAsync(
+        `xcrun simctl io ${targetDevice} screenshot "${screenshotPath}"`
+      );
+    } catch (captureError: any) {
+      // Check if no simulator is running
+      if (captureError.message.includes("No devices are booted")) {
+        return JSON.stringify({
+          success: false,
+          error: "No iOS Simulator is running",
+          hint: "Please launch an iOS Simulator first using Xcode or 'xcrun simctl boot <device>'",
+        });
+      }
+      throw captureError;
+    }
+
+    // Verify screenshot was created
+    if (!fs.existsSync(screenshotPath)) {
+      return JSON.stringify({
+        success: false,
+        error: "Failed to capture screenshot",
+      });
+    }
+
+    // Add to preview store
+    const store = loadStore();
+    const preview: PreviewSet = {
+      id: generateId(),
+      screenshotPath: screenshotPath,
+      title: args.title,
+      subtitle: args.subtitle,
+      deviceType: args.deviceType || store.settings.defaultDeviceType,
+      paletteId: args.paletteId || store.settings.defaultPaletteId,
+      createdAt: new Date().toISOString(),
+    };
+
+    store.previews.push(preview);
+    saveStore(store);
+
+    return JSON.stringify({
+      success: true,
+      message: "Simulator screenshot captured and preview added",
+      preview: preview,
+      totalPreviews: store.previews.length,
+    });
+  } catch (error: any) {
+    return JSON.stringify({
+      success: false,
+      error: `Failed to capture simulator: ${error.message}`,
+      hint: "Make sure Xcode Command Line Tools are installed and a simulator is running",
+    });
+  }
+}
+
+async function handleListSimulators(): Promise<string> {
+  try {
+    const { stdout } = await execAsync(
+      "xcrun simctl list devices booted -j"
+    );
+    const data = JSON.parse(stdout);
+
+    const bootedDevices: Array<{
+      name: string;
+      udid: string;
+      runtime: string;
+    }> = [];
+
+    for (const [runtime, devices] of Object.entries(data.devices)) {
+      const deviceList = devices as Array<{
+        name: string;
+        udid: string;
+        state: string;
+      }>;
+      for (const device of deviceList) {
+        if (device.state === "Booted") {
+          // Extract iOS version from runtime string
+          const runtimeMatch = runtime.match(/iOS[- ](\d+[.-]\d+)/i);
+          const runtimeVersion = runtimeMatch
+            ? `iOS ${runtimeMatch[1].replace("-", ".")}`
+            : runtime;
+
+          bootedDevices.push({
+            name: device.name,
+            udid: device.udid,
+            runtime: runtimeVersion,
+          });
+        }
+      }
+    }
+
+    if (bootedDevices.length === 0) {
+      return JSON.stringify({
+        success: true,
+        count: 0,
+        message: "No simulators are currently running",
+        hint: "Launch a simulator using Xcode or 'xcrun simctl boot <device>'",
+        simulators: [],
+      });
+    }
+
+    return JSON.stringify({
+      success: true,
+      count: bootedDevices.length,
+      simulators: bootedDevices,
+    });
+  } catch (error: any) {
+    return JSON.stringify({
+      success: false,
+      error: `Failed to list simulators: ${error.message}`,
+      hint: "Make sure Xcode Command Line Tools are installed",
+    });
+  }
+}
+
 // Main server setup
 const server = new Server(
   {
     name: "muse-app-preview-mcp",
-    version: "1.0.0",
+    version: "1.1.0",
   },
   {
     capabilities: {
@@ -550,6 +737,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       break;
     case "update_settings":
       result = await handleUpdateSettings(args as any);
+      break;
+    case "capture_simulator":
+      result = await handleCaptureSimulator(args as any);
+      break;
+    case "list_simulators":
+      result = await handleListSimulators();
       break;
     default:
       result = JSON.stringify({ error: `Unknown tool: ${name}` });

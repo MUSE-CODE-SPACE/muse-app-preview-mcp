@@ -3,12 +3,14 @@
 [![npm version](https://badge.fury.io/js/muse-app-preview-mcp.svg)](https://www.npmjs.com/package/muse-app-preview-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-MCP (Model Context Protocol) server for managing App Store preview screenshots. Collect screenshots with titles during app development, then batch generate beautiful preview images.
+MCP (Model Context Protocol) server for managing App Store preview screenshots. Claude can automatically capture simulator screenshots, generate marketing text, and create beautiful preview images.
 
 ## Features
 
 | Tool | Description |
 |------|-------------|
+| `capture_simulator` | **NEW** Capture screenshot from running iOS Simulator and add as preview |
+| `list_simulators` | **NEW** List all running iOS Simulators |
 | `add_preview` | Add a screenshot with title and subtitle as a preview set |
 | `list_previews` | List all saved preview sets |
 | `remove_preview` | Remove a specific preview by ID |
@@ -33,11 +35,51 @@ claude mcp add muse-app-preview-mcp npx muse-app-preview-mcp
 npm install -g muse-app-preview-mcp
 ```
 
-## Usage
+## Automated Workflow
 
-### 1. Add Preview Sets
+Just say to Claude:
 
-While developing your app, capture screenshots and save them as preview sets:
+```
+"Create App Store previews for my app"
+```
+
+Claude will automatically:
+1. Analyze your conversation to identify key features
+2. Capture screenshots from the running iOS Simulator
+3. Generate marketing titles and subtitles
+4. Create beautiful App Store preview images
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Fully Automated Preview Generation                         │
+│                                                             │
+│  User: "Create App Store previews"                          │
+│                                                             │
+│  Claude:                                                    │
+│    1. Analyzes conversation → "Login, Dashboard, Settings"  │
+│    2. Generates marketing text:                             │
+│       ├── "Easy Login" / "Get started in seconds"           │
+│       ├── "Smart Dashboard" / "Everything at a glance"      │
+│       └── "Custom Settings" / "Make it yours"               │
+│    3. Captures each screen from Simulator                   │
+│    4. Sends to MUSE Preview Maker                           │
+│    5. Generates all preview images!                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Manual Usage
+
+### 1. Capture from Simulator
+
+With your app running in iOS Simulator:
+
+```
+capture_simulator:
+  title: "Amazing Feature"
+  subtitle: "Discover new possibilities"
+```
+
+### 2. Add Preview from File
 
 ```
 add_preview:
@@ -48,41 +90,12 @@ add_preview:
   paletteId: "ocean"        # optional
 ```
 
-### 2. List Saved Previews
-
-```
-list_previews
-```
-
 ### 3. Generate All Previews
-
-When ready, generate all App Store preview images at once:
 
 ```
 generate_previews:
   outputDirectory: "/path/to/output"  # optional
   exportAllSizes: true                 # optional
-```
-
-## Workflow
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  During App Development with Claude Code                    │
-│                                                             │
-│  1. Capture screenshot of Feature A                         │
-│     → add_preview with title "Feature A"                    │
-│                                                             │
-│  2. Capture screenshot of Feature B                         │
-│     → add_preview with title "Feature B"                    │
-│                                                             │
-│  3. Capture screenshot of Feature C                         │
-│     → add_preview with title "Feature C"                    │
-│                                                             │
-│  4. Ready to submit to App Store                            │
-│     → generate_previews                                     │
-│     → All preview images created!                           │
-└─────────────────────────────────────────────────────────────┘
 ```
 
 ## Supported Devices
@@ -108,6 +121,7 @@ generate_previews:
 ## Requirements
 
 - Node.js 18+
+- Xcode Command Line Tools (for simulator capture)
 - MUSE Preview Maker app (macOS) - for image generation
 
 ## Related
