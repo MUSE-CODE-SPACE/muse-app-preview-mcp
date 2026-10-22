@@ -9,13 +9,24 @@ MCP (Model Context Protocol) server for managing App Store preview screenshots. 
 
 | Tool | Description |
 |------|-------------|
-| `capture_simulator` | **NEW** Capture screenshot from running iOS Simulator and add as preview |
-| `list_simulators` | **NEW** List all running iOS Simulators |
+| `create_app_previews` | Complete workflow: pick platform/language, generate marketing text, auto-capture, send to MUSE Preview Maker |
+| `capture_simulator` | Capture a screenshot from the running iOS Simulator and add it as a preview set |
+| `list_simulators` | List all booted iOS Simulators that can be captured |
+| `launch_and_capture` | Launch an app on the simulator and capture a screenshot |
+| `capture_app_screens` | Capture multiple screens from a running app |
+| `interact_simulator` | Interact with the simulator: tap, swipe, scroll, type text |
+| `navigate_app` | Navigate to a screen via deep links / URL schemes |
+| `configure_simulator` | Configure status bar time, battery, signal, dark/light mode |
+| `auto_capture_flow` | Automatically capture a user flow with actions |
+| `scroll_and_capture` | Scroll through a screen and capture at intervals |
+| `batch_capture_devices` | Capture the same screen on multiple devices/simulators |
+| `record_and_extract` | Record simulator video and extract key frames as screenshots |
 | `add_preview` | Add a screenshot with title and subtitle as a preview set |
 | `list_previews` | List all saved preview sets |
 | `remove_preview` | Remove a specific preview by ID |
 | `update_preview` | Update an existing preview set |
 | `clear_all` | Clear all saved previews |
+| `reset_all` | Complete reset: previews, screenshots, and pending data |
 | `open_app` | Open MUSE Preview Maker app |
 | `generate_previews` | Generate all preview images at once |
 | `get_settings` | Get current default settings |
