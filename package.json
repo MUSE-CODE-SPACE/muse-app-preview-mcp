@@ -1,6 +1,6 @@
 {
   "name": "muse-app-preview-mcp",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "MCP server for managing app store preview screenshots with MUSE Preview Maker",
   "main": "dist/index.js",
   "bin": {
@@ -10,7 +10,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "test": "tsc && node --test test/"
   },
   "keywords": [
     "mcp",
@@ -26,11 +27,11 @@
     "dist"
   ],
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0"
+    "@modelcontextprotocol/sdk": "^1.32.1"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
-    "typescript": "^5.3.0"
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2"
   },
   "engines": {
     "node": ">=18.0.0"
